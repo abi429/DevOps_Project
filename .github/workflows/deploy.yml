@@ -1,0 +1,58 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Test SSH Connection to VPS
+      env:
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+      run: |
+        echo "Testing SSH connection to VPS..."
+        ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "echo 'Connection successful'"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    if: success()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy to VPS
+      env:
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+      run: |
+        echo "Pulling the latest code from GitHub..."
+        ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd ~/assignment/DevOps_Project/welcome-website && \
+        git pull origin main"
+        
+        echo "Stopping and removing old Docker containers..."
+        ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd ~/assignment/DevOps_Project/welcome-website && \
+        docker-compose down"
+
+        echo "Building and starting Docker containers..."
+        ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd ~/assignment/DevOps_Project/welcome-website && \
+        docker-compose up -d --build"
