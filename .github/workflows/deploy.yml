@@ -40,9 +40,10 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Set safe directory for git
+    - name: Set safe directory for git on VPS
       run: |
-        git config --global --add safe.directory /home/${{ secrets.VPS_USER }}/assignment/DevOps_Project
+        echo "Setting safe directory for Git on VPS..."
+        ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "git config --global --add safe.directory /home/${{ secrets.VPS_USER }}/assignment/DevOps_Project"
 
     - name: Deploy to VPS
       env:
