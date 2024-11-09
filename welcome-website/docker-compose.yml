@@ -1,23 +1,23 @@
 version: '3.8'
 
 services:
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      
 
   frontend:
-    build:
-      context: ./frontend  
+    build: ./frontend
+    container_name: frontend
     ports:
-      - "3000:3000"  
-    networks:
-      - app-network  
-
-  backend:
-    build:
-      context: ./backend  
-    ports:
-      - "5000:5000"  
-    networks:
-      - app-network 
-
-networks:
-  app-network:
-    driver: bridge
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      REACT_APP_BACKEND_URL: http://backend:5000  
+      
+    depends_on:
+      - backend  
