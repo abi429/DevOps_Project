@@ -34,30 +34,25 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
+    
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.5.3
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Install sshpass to handle sudo password
-      run: |
-        sudo apt-get update && sudo apt-get install -y sshpass
-
     - name: Deploy to VPS
       env:
         VPS_USER: ${{ secrets.VPS_USER }}
         VPS_HOST: ${{ secrets.VPS_HOST }}
-        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}  # Store the password as a secret in GitHub
       run: |
         echo "Pulling the latest code from GitHub..."
         ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd ~/assignment/DevOps_Project/welcome-website && \
         git pull origin main"
-
+        
         echo "Stopping and removing old Docker containers..."
-        sshpass -p $VPS_PASSWORD ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd ~/assignment/DevOps_Project/welcome-website && \
+        ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd ~/assignment/DevOps_Project/welcome-website && \
         sudo docker-compose down"
 
         echo "Building and starting Docker containers..."
-        sshpass -p $VPS_PASSWORD ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd ~/assignment/DevOps_Project/welcome-website && \
+        ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd ~/assignment/DevOps_Project/welcome-website && \
         sudo docker-compose up -d --build"
